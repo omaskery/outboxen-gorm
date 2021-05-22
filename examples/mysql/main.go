@@ -57,7 +57,9 @@ func main() {
 
 	logger.Info("connecting to database", "dsn", dsn)
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: gormlogger.New(&gormLogger{logger.WithName("gorm")}, gormlogger.Config{}),
+		Logger: gormlogger.New(&gormLogger{logger.WithName("gorm")}, gormlogger.Config{
+			LogLevel: gormlogger.Info,
+		}),
 	})
 	if err != nil {
 		panic(err)
