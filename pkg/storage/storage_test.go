@@ -98,7 +98,7 @@ var _ = Describe("Storage", func() {
 			JustBeforeEach(func() {
 				log.Printf("queuing message")
 				err = db.Transaction(func(tx *gorm.DB) error {
-					return store.Queue(ctx, tx, outbox.Message{
+					return store.PublishWithTxn(ctx, tx, outbox.Message{
 						Key:     []byte("test-key"),
 						Payload: []byte("test-payload"),
 					})

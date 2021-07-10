@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -9,6 +10,18 @@ import (
 	"github.com/omaskery/outboxen/pkg/outbox"
 	"gorm.io/gorm"
 )
+
+var txnKey struct{}
+
+// WithDatabase augments a context.Context with a GORM transaction handle for use during publishing
+func WithDatabase(ctx context.Context, txn *gorm.DB) context.Context {
+	return context.WithValue(ctx, txnKey, txn)
+}
+
+// DatabaseFromContext retrieves a GORM transaction from the context.Context if stored using WithDatabase
+func DatabaseFromContext(ctx context.Context) *gorm.DB {
+	return ctx.Value(txnKey).(*gorm.DB)
+}
 
 // IDGenerator allows for customising how outbox entry IDs are generated
 type IDGenerator interface {
@@ -21,6 +34,8 @@ type IDGenerator interface {
 type Storage struct {
 	IDGenerator IDGenerator
 	Clock       clockwork.Clock
+
+	GetTxn func(ctx context.Context) *gorm.DB
 
 	db *gorm.DB
 }
@@ -38,6 +53,7 @@ func New(db *gorm.DB) *Storage {
 	return &Storage{
 		IDGenerator: &UUIDGenerator{},
 		Clock:       clockwork.NewRealClock(),
+		GetTxn:      DatabaseFromContext,
 		db:          db,
 	}
 }
@@ -93,6 +109,16 @@ func (s *Storage) DeleteEntries(ctx context.Context, entryIDs ...string) error {
 	})
 }
 
+// Publish will write messages to the outbox for later publishing, using the transaction stored in the context
+func (s *Storage) Publish(ctx context.Context, messages ...outbox.Message) error {
+	txn := s.GetTxn(ctx)
+	if txn == nil {
+		return errors.New("failed to obtain database transaction from context")
+	}
+
+	return s.PublishWithTxn(ctx, txn, messages...)
+}
+
 var _ outbox.ProcessorStorage = (*Storage)(nil)
 
 // AutoMigrate runs GORM's auto migrator on the outbox table
@@ -100,10 +126,10 @@ func (s *Storage) AutoMigrate() error {
 	return s.db.AutoMigrate(OutboxEntry{})
 }
 
-// Queue writes the provided messages to the outbox as part of the provided transaction.
+// PublishWithTxn writes the provided messages to the outbox as part of the provided transaction.
 // Once the transaction is committed the messages will be eventually processed by the outbox
 // and published.
-func (s *Storage) Queue(ctx context.Context, txn *gorm.DB, messages ...outbox.Message) error {
+func (s *Storage) PublishWithTxn(ctx context.Context, txn *gorm.DB, messages ...outbox.Message) error {
 	rows := make([]OutboxEntry, 0, len(messages))
 	for _, m := range messages {
 		rows = append(rows, OutboxEntry{
