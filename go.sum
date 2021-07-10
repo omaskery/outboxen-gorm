@@ -48,10 +48,6 @@ github.com/mattn/go-sqlite3 v1.14.5/go.mod h1:WVKg1VTActs4Qso6iwGbiFih2UIHo0ENGw
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
-github.com/omaskery/outboxen v0.0.0-20210521233240-c1abfc761dd7 h1:ptU07GlAqNnRsgMwaqUl3PQgWyOdTiLp00EwTgoCnZo=
-github.com/omaskery/outboxen v0.0.0-20210521233240-c1abfc761dd7/go.mod h1:3IJa8q4reuA4PGgwNEWFxyby5iVfi3XTrFs9zVVrKDo=
-github.com/omaskery/outboxen v0.1.0 h1:ZzpRBR0sf5doR8tcuq/yuUSJImhW8m11pp+Pyw0GP80=
-github.com/omaskery/outboxen v0.1.0/go.mod h1:3IJa8q4reuA4PGgwNEWFxyby5iVfi3XTrFs9zVVrKDo=
 github.com/omaskery/outboxen v0.2.0 h1:uwNFypgCEhdFqtyNxOhbWOvPaEnKD1slLQiCmY52oZo=
 github.com/omaskery/outboxen v0.2.0/go.mod h1:3IJa8q4reuA4PGgwNEWFxyby5iVfi3XTrFs9zVVrKDo=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
