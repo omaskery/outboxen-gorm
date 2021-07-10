@@ -121,15 +121,12 @@ outer:
 	for {
 		logger.Info("writing to outbox")
 		err = db.Transaction(func(tx *gorm.DB) error {
-			// add the transaction to the context so that the outbox can get the original transaction back
-			ctx := storage.WithDatabase(ctx, tx)
-
 			// update your internal state using this transaction
 			// and create the messages you want to publish
 
 			var messages []outbox.Message
 
-			count := rand.Intn(100) + 1
+			count := rand.Intn(50) + 1
 			for i := 0; i < count; i++ {
 				messages = append(messages, outbox.Message{
 					Key:     []byte("example-message-key"),
@@ -140,7 +137,7 @@ outer:
 
 			// write your messages to the outbox as part of the same
 			// transaction, will be published later by the outbox
-			return ob.Publish(ctx, messages...)
+			return ob.Publish(ctx, tx, messages...)
 		})
 		if err != nil {
 			logger.Error(err, "failed to write to outbox")

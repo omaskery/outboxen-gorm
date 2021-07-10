@@ -11,18 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var txnKey struct{}
-
-// WithDatabase augments a context.Context with a GORM transaction handle for use during publishing
-func WithDatabase(ctx context.Context, txn *gorm.DB) context.Context {
-	return context.WithValue(ctx, txnKey, txn)
-}
-
-// DatabaseFromContext retrieves a GORM transaction from the context.Context if stored using WithDatabase
-func DatabaseFromContext(ctx context.Context) *gorm.DB {
-	return ctx.Value(txnKey).(*gorm.DB)
-}
-
 // IDGenerator allows for customising how outbox entry IDs are generated
 type IDGenerator interface {
 	// GenerateID is called to generate a unique outbox entry ID
@@ -53,7 +41,6 @@ func New(db *gorm.DB) *Storage {
 	return &Storage{
 		IDGenerator: &UUIDGenerator{},
 		Clock:       clockwork.NewRealClock(),
-		GetTxn:      DatabaseFromContext,
 		db:          db,
 	}
 }
@@ -110,13 +97,13 @@ func (s *Storage) DeleteEntries(ctx context.Context, entryIDs ...string) error {
 }
 
 // Publish will write messages to the outbox for later publishing, using the transaction stored in the context
-func (s *Storage) Publish(ctx context.Context, messages ...outbox.Message) error {
-	txn := s.GetTxn(ctx)
-	if txn == nil {
+func (s *Storage) Publish(ctx context.Context, txn interface{}, messages ...outbox.Message) error {
+	tx, ok := txn.(*gorm.DB)
+	if !ok {
 		return errors.New("failed to obtain database transaction from context")
 	}
 
-	return s.PublishWithTxn(ctx, txn, messages...)
+	return s.publish(ctx, tx, messages...)
 }
 
 var _ outbox.ProcessorStorage = (*Storage)(nil)
@@ -126,10 +113,10 @@ func (s *Storage) AutoMigrate() error {
 	return s.db.AutoMigrate(OutboxEntry{})
 }
 
-// PublishWithTxn writes the provided messages to the outbox as part of the provided transaction.
+// publish writes the provided messages to the outbox as part of the provided transaction.
 // Once the transaction is committed the messages will be eventually processed by the outbox
 // and published.
-func (s *Storage) PublishWithTxn(ctx context.Context, txn *gorm.DB, messages ...outbox.Message) error {
+func (s *Storage) publish(ctx context.Context, txn *gorm.DB, messages ...outbox.Message) error {
 	rows := make([]OutboxEntry, 0, len(messages))
 	for _, m := range messages {
 		rows = append(rows, OutboxEntry{
