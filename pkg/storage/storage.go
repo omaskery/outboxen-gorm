@@ -52,7 +52,7 @@ func New(db *gorm.DB) *Storage {
 func (s *Storage) ClaimEntries(ctx context.Context, processorID string, claimDeadline time.Time) error {
 	now := s.Clock.Now()
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		return s.db.WithContext(ctx).
+		return tx.WithContext(ctx).
 			Model(OutboxEntry{}).
 			Where(`processor_id = "" OR processor_id = ? OR processing_deadline IS NULL OR processing_deadline < ?`, processorID, now).
 			Updates(&OutboxEntry{
@@ -92,7 +92,7 @@ func (s *Storage) GetClaimedEntries(ctx context.Context, processorID string, bat
 // DeleteEntries deletes all entries specified (by their ID)
 func (s *Storage) DeleteEntries(ctx context.Context, entryIDs ...string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
-		return s.db.WithContext(ctx).Delete(OutboxEntry{}, "id IN ?", entryIDs).Error
+		return tx.WithContext(ctx).Delete(OutboxEntry{}, "id IN ?", entryIDs).Error
 	})
 }
 
