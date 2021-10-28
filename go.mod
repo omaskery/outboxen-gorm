@@ -8,6 +8,6 @@ require (
 	github.com/omaskery/outboxen v0.3.2
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
-	gorm.io/driver/sqlite v1.1.5
-	gorm.io/gorm v1.21.15
+	gorm.io/driver/sqlite v1.2.3
+	gorm.io/gorm v1.22.0
 )
