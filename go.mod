@@ -9,5 +9,5 @@ require (
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0
 	gorm.io/driver/sqlite v1.1.5
-	gorm.io/gorm v1.21.15
+	gorm.io/gorm v1.22.2
 )
