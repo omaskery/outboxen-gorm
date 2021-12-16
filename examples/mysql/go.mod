@@ -5,8 +5,8 @@ go 1.16
 replace github.com/omaskery/outboxen-gorm => ../../
 
 require (
-	github.com/go-logr/logr v0.4.0
-	github.com/go-logr/zapr v0.4.0
+	github.com/go-logr/logr v1.2.2
+	github.com/go-logr/zapr v1.2.2
 	github.com/omaskery/outboxen v0.3.2
 	github.com/omaskery/outboxen-gorm v0.3.1
 	go.uber.org/zap v1.19.1
