@@ -69,7 +69,7 @@ func (s *Storage) GetClaimedEntries(ctx context.Context, processorID string, bat
 
 	result := s.db.WithContext(ctx).
 		Model(OutboxEntry{}).
-		Select("id", "key", "payload").
+		Select("namespace", "id", "key", "payload").
 		Where("processor_id = ?", processorID).
 		Limit(batchSize).
 		Find(&rows)
@@ -80,9 +80,10 @@ func (s *Storage) GetClaimedEntries(ctx context.Context, processorID string, bat
 	results := make([]outbox.ClaimedEntry, 0, len(rows))
 	for _, r := range rows {
 		results = append(results, outbox.ClaimedEntry{
-			ID:      r.ID,
-			Key:     r.Key,
-			Payload: r.Payload,
+			Namespace: r.Namespace,
+			ID:        r.ID,
+			Key:       r.Key,
+			Payload:   r.Payload,
 		})
 	}
 
@@ -117,12 +118,15 @@ func (s *Storage) AutoMigrate() error {
 // Once the transaction is committed the messages will be eventually processed by the outbox
 // and published.
 func (s *Storage) publish(ctx context.Context, txn *gorm.DB, messages ...outbox.Message) error {
+	namespace := outbox.NamespaceFromContext(ctx)
+
 	rows := make([]OutboxEntry, 0, len(messages))
 	for _, m := range messages {
 		rows = append(rows, OutboxEntry{
-			ID:      s.IDGenerator.GenerateID(s.Clock, m),
-			Key:     m.Key,
-			Payload: m.Payload,
+			Namespace: namespace,
+			ID:        s.IDGenerator.GenerateID(s.Clock, m),
+			Key:       m.Key,
+			Payload:   m.Payload,
 		})
 	}
 
@@ -131,14 +135,20 @@ func (s *Storage) publish(ctx context.Context, txn *gorm.DB, messages ...outbox.
 
 // OutboxEntry is the internal representation of an outbox entry
 type OutboxEntry struct {
+	// Namespace is used to group outbox entries
+	Namespace string `gorm:"primaryKey;column:namespace"`
 	// ID uniquely identifies this outbox entry
-	ID string
+	ID string `gorm:"primaryKey;column:id"`
 	// Key that will be passed to the outbox's publisher
-	Key []byte
+	Key []byte `gorm:"column:key"`
 	// Payload that will be passed to the outbox's publisher
-	Payload []byte
+	Payload []byte `gorm:"column:payload"`
 	// ProcessorID identifies the processor that currently has a claim on this outbox entry
-	ProcessorID string
+	ProcessorID string `gorm:"column:processor_id"`
 	// ProcessingDeadline is when any outstanding claim to this outbox entry expires
-	ProcessingDeadline *time.Time
+	ProcessingDeadline *time.Time `gorm:"column:processing_deadline"`
+}
+
+func (OutboxEntry) TableName() string {
+	return "outbox_entries"
 }

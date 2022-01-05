@@ -20,10 +20,12 @@ import (
 )
 
 const (
-	PrimaryProcessorID = "primary-processor-id"
+	PrimaryProcessorID   = "primary-processor-id"
 	SecondaryProcessorID = "secondary-processor-id"
 
 	TestClaimDuration = 10 * time.Second
+
+	testNamespace = "test-namespace"
 )
 
 var _ = Describe("Storage", func() {
@@ -98,6 +100,7 @@ var _ = Describe("Storage", func() {
 			JustBeforeEach(func() {
 				log.Printf("queuing message")
 				err = db.Transaction(func(tx *gorm.DB) error {
+					ctx := outbox.WithNamespace(ctx, testNamespace)
 					return store.Publish(ctx, tx, outbox.Message{
 						Key:     []byte("test-key"),
 						Payload: []byte("test-payload"),
@@ -122,6 +125,7 @@ var _ = Describe("Storage", func() {
 					claimed, err := store.GetClaimedEntries(ctx, PrimaryProcessorID, 10)
 					Expect(err).To(Succeed())
 					Expect(claimed).To(HaveLen(1))
+					Expect(claimed[0].Namespace).To(Equal(testNamespace))
 					Expect(claimed[0].Key).To(Equal([]byte("test-key")))
 					Expect(claimed[0].Payload).To(Equal([]byte("test-payload")))
 				})

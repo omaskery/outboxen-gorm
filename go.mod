@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/google/uuid v1.3.0
 	github.com/jonboulle/clockwork v0.2.2
-	github.com/omaskery/outboxen v0.3.2
+	github.com/omaskery/outboxen v0.4.0
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.17.0
 	gorm.io/driver/sqlite v1.2.6
