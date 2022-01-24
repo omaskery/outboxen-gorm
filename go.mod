@@ -7,7 +7,7 @@ require (
 	github.com/jonboulle/clockwork v0.2.2
 	github.com/omaskery/outboxen v0.4.0
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.17.0
+	github.com/onsi/gomega v1.18.0
 	gorm.io/driver/sqlite v1.2.6
 	gorm.io/gorm v1.22.4
 )
